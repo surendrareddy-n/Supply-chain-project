@@ -1,0 +1,101 @@
+create database supply_chain;
+use supply_chain;
+select * from inventory_movements;
+select * from orders;
+select * from products;
+select * from shipments;
+select * from suppliers;
+select * from warehouses;
+
+1. Identify the top 5 suppliers whose average delivery delay is the highest.
+with delivery_delay as (
+select supplier_id, avg(datediff(delivery_date, ship_Date)) as avg_delay
+from shipments group by supplier_id 
+)
+select * from (
+select *,
+rank() over(order by avg_delay desc) as delay_rank 
+from delivery_delay
+) ranked
+where delay_rank <= 5;
+
+2.  return a list of suppliers whose `on_time_delivery_rate` is less than 85% and whose `avg_lead_time_days` is greater than 5. These suppliers are considered underperforming based on historical performance metrics.
+select supplier_id, on_time_delivery_rate, avg_lead_time_days
+from suppliers 
+where on_time_delivery_Rate < 85 and avg_lead_time_days > 5
+limit 10;
+
+3. Calculate the total `transport_cost` incurred by each supplier over the last 3 months. Use the `shipments` table, filter records where `ship_date` is within the last 3 months from today's date, and group the data by `supplier_id`.
+with recent_shipments as (
+select * from shipments 
+where ship_Date >= current_date() - interval 3 month
+)
+select shipment_id, 
+sum(transport_cost) as total_cost from recent_shipments
+group by shipment_id;
+
+4. Using the `warehouses` table, calculate the utilization percentage of each warehouse as `(current_utilization / capacity) * 100`. Then rank all warehouses in descending order of utilization percentage to identify which ones are most heavily used.
+select warehouse_id,
+round((current_utilization * 1.0 / capacity) * 100, 2) as utilization_pct,
+rank() over(order by current_utilization * 1.0/ capacity desc) as rank_by_utilization
+from warehouses
+order by rank_by_utilization limit 10;
+
+5. Using the `inventory_movements` table, calculate the net movement of each product per warehouse. This should be calculated as the difference between the total quantity of stock IN movements and the total quantity of stock OUT movements, grouped by both `warehouse_id` and `product_id`.
+select warehouse_id, product_id,
+sum(case when movement_type = "IN" then quantity
+else quantity end) as net_stock_movement
+from inventory_movements
+group by warehouse_id, product_id;
+
+6. Retrieve all shipment records from the `shipments` table where the shipment was delayed by more than 5 days. The delay should be calculated as the difference between `delivery_date` and `ship_date`.
+SELECT shipment_id, ship_date, delivery_date,
+DATEDIFF(delivery_date, ship_date) AS delay_days
+FROM shipments
+WHERE DATEDIFF(delivery_date, ship_date) >= 3 and 5
+LIMIT 10;
+
+7. From the `shipments` table, calculate the number of total shipments and the number of delayed shipments (delay > 5 days) per month. Group the results by each month (use `ship_date`) to show the monthly trend of shipping performance.
+with monthly_shipments as (
+select date_format(ship_Date, "%Y-%M") as month, count(*) as total_shipments,
+sum(case when datediff(delivery_date, ship_date) > 5 then 1 else 0 end) as delayed_shipments
+from shipments
+group by month
+)
+select * from monthly_shipments;
+
+8. Identify the top 3 transport modes from the `shipments` table that incurred the highest total `transport_cost` inthe last 6 months. Filter records using the `ship_date`, group them by `transport_mode`, sum up the cost, and then rank them in descending order.
+WITH recent_transport AS (
+SELECT * FROM shipments
+WHERE ship_date >= CURRENT_DATE() - INTERVAL 6 MONTH
+), 
+mode_cost AS (
+SELECT transport_mode, SUM(transport_cost) AS total_cost
+FROM recent_transport
+GROUP BY transport_mode
+)
+SELECT * FROM (
+SELECT *, 
+RANK() OVER (ORDER BY total_cost DESC) AS rnk
+FROM mode_cost
+) ranked
+WHERE rnk <= 3;
+
+9. Join the `orders` table and the `shipments` table using the `order_id`, and calculate the average number of days taken from `order_date` (in `orders`) to `delivery_date` (in `shipments`). Group the results by the `priority` field from the `orders` table to see how fulfillment times vary by order priority.
+ WITH order_ship_join AS (
+ SELECT o.priority, DATEDIFF(s.delivery_date, o.order_date) AS fulfillment_days
+ FROM orders o
+ JOIN shipments s ON o.order_id = s.order_id
+)
+SELECT priority, ROUND(AVG(fulfillment_days), 2) AS avg_fulfillment_days
+FROM order_ship_join
+GROUP BY priority;
+
+10. From the `orders` table, sum the `total_items` ordered by each customer using `customer_id`, and rank them to identify the top 10 customers who ordered the most items overall.
+with ranked_customers as (
+select customer_id, sum(total_items) as total_orders,
+rank() over(order by sum(total_items) desc) as rnk
+from orders 
+group by customer_id
+)
+select * from ranked_customers where rnk <= 10;
