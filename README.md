@@ -61,7 +61,7 @@ group by month
 
 select * from monthly_shipments;
 
-5.  Identify the top 3 transport modes from the `shipments` table that incurred the highest total `transport_cost` inthe last 6 months. Filter records using the `ship_date`, group them by `transport_mode`, sum up the cost, and then rank them in descending order.
+4.  Identify the top 3 transport modes from the `shipments` table that incurred the highest total `transport_cost` inthe last 6 months. Filter records using the `ship_date`, group them by `transport_mode`, sum up the cost, and then rank them in descending order.
    
 WITH recent_transport AS (
 
