@@ -1,0 +1,48 @@
+1. Identify the top 5 suppliers whose average delivery delay is the highest.
+
+2. return a list of suppliers whose `on_time_delivery_rate` is less than 85% and whose `avg_lead_time_days` is greater than 5. These suppliers are considered underperforming based on historical performance metrics.
+
+3. Calculate the total `transport_cost` incurred by each supplier over the last 3 months. Use the `shipments` table, filter records where `ship_date` is within the last 3 months from today's date, and group the data by `supplier_id`.
+
+4. calculate the utilization percentage of each warehouse as `(current_utilization / capacity) * 100`. Then rank all warehouses in descending order of utilization percentage to identify which ones are most heavily used.
+
+5. calculate the net movement of each product per warehouse. This should be calculated as the difference between the total quantity of stock IN movements and the total quantity of stock OUT movements, grouped by both `warehouse_id` and `product_id`.
+
+6. Retrieve all shipment records from the `shipments` table where the shipment was delayed by more than 5 days. The delay should be calculated as the difference between `delivery_date` and `ship_date`.
+
+7. calculate the number of total shipments and the number of delayed shipments (delay > 5 days) per month. Group the results by each month (use `ship_date`) to show the monthly trend of shipping performance.
+
+8. Identify the top 3 transport modes from the `shipments` table that incurred the highest total `transport_cost` in the last 6 months. Filter records using the `ship_date`, group them by `transport_mode`, sum up the cost, and then rank them in descending order.
+
+9. Join the `orders` table and the `shipments` table using the `order_id`, and calculate the average number of days taken from `order_date` (in `orders`) to `delivery_date` (in `shipments`). Group the results by the `priority` field from the `orders` table to see how fulfillment times vary by order priority.
+
+10. Sum the `total_items` ordered by each customer using `customer_id`, and rank them to identify the top 10 customers who ordered the most items overall.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
